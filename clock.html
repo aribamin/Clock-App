@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS Clock/Timer/Stopwatch/Countdown</title>
+    
+    <style>
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2em;
+            color: #333;
+        }
+
+        section {
+            background: white;
+            padding: 20px;
+            margin: 20px auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            border-left: 5px solid #007BFF;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+            font-size: 1.5em;
+            color: #007BFF;
+        }
+
+        #clock, #timer, #stopwatch, #countdown {
+            font-size: 1.8em;
+            font-weight: bold;
+            padding: 10px;
+            color: #222;
+        }
+
+        input, button {
+            margin: 5px;
+            padding: 10px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: #0056b3;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+    
+    <script>
+        'use strict';
+    
+        class Ticker {
+            constructor() {
+                if (Ticker.instance) {
+                    throw new Error("Ticker is a singleton! Use Ticker.getInstance() instead.");
+                }
+                this.observers = [];
+                this.running = false;
+            }
+    
+            static getInstance() {
+                if (!Ticker.instance) {
+                    Ticker.instance = new Ticker();
+                }
+                return Ticker.instance;
+            }
+    
+            addObserver(observer) {
+                if (typeof observer.update === 'function') {
+                    this.observers.push(observer);
+                    if (!this.running) {
+                        this.start();
+                    }
+                }
+            }
+
+            notify() {
+                this.observers.forEach(observer => observer.update());
+            }
+    
+            start() {
+                if (this.running) return; // Prevent multiple timeouts
+                this.running = true;
+    
+                const tick = () => {
+                    if (!this.running) return;
+                    this.notify();
+                    setTimeout(tick, 1000);
+                };
+
+                tick();
+            }
+        }
+    
+        class Clock {
+            constructor() {
+                this.clockElement = document.getElementById('clock');
+                const ticker = Ticker.getInstance();
+                ticker.addObserver(this);
+                this.update(); // Set initial time immediately
+            }
+    
+            update() {
+                const now = new Date();
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                const seconds = now.getSeconds().toString().padStart(2, '0');
+    
+                this.clockElement.textContent = `${hours}:${minutes}:${seconds}`;
+            }
+        }
+        
+        class Timer {
+            constructor() {
+                this.minutesInput = document.getElementById('timer-minutes');
+                this.secondsInput = document.getElementById('timer-seconds');
+                this.toggleCheckbox = document.getElementById('timer-toggle');
+                this.timerDisplay = document.getElementById('timer');
+                this.timeLeft = 0;
+                this.isRunning = false;
+
+                const ticker = Ticker.getInstance();
+                ticker.addObserver(this);
+
+                this.toggleCheckbox.addEventListener('change', () => this.toggleTimer());
+            }
+
+            toggleTimer() {
+                if (this.toggleCheckbox.checked) {
+                    const minutes = parseInt(this.minutesInput.value) || 0;
+                    const seconds = parseInt(this.secondsInput.value) || 0;
+                    this.timeLeft = minutes * 60 + seconds;
+
+                    if (this.timeLeft > 0) {
+                        this.isRunning = true;
+                        this.minutesInput.disabled = true;
+                        this.secondsInput.disabled = true;
+                        this.update();
+                    } else {
+                        this.toggleCheckbox.checked = false;
+                        alert("Please enter a valid time.");
+                    }
+                } else {
+                    this.isRunning = false;
+                    this.minutesInput.disabled = false;
+                    this.secondsInput.disabled = false;
+                    this.timerDisplay.textContent = "--:--";
+                }
+            }
+
+            update() {
+                if (this.isRunning && this.timeLeft > 0) {
+                    this.timeLeft--;
+                    const minutes = Math.floor(this.timeLeft / 60).toString().padStart(2, '0');
+                    const seconds = (this.timeLeft % 60).toString().padStart(2, '0');
+                    this.timerDisplay.textContent = `${minutes}:${seconds}`;
+                } else if (this.isRunning && this.timeLeft === 0) {
+                    this.timerDisplay.textContent = "Time's Up!";
+                    this.toggleCheckbox.checked = false;
+                    this.isRunning = false;
+                    this.minutesInput.disabled = false;
+                    this.secondsInput.disabled = false;
+                }
+            }
+        }
+
+        class Stopwatch {
+            constructor() {
+                this.display = document.getElementById('stopwatch');
+                this.startButton = document.getElementById('stopwatch-start');
+                this.stopButton = document.getElementById('stopwatch-stop');
+                this.resetButton = document.getElementById('stopwatch-reset');
+    
+                this.startTime = 0;
+                this.elapsedTime = 0;
+                this.running = false;
+    
+                const ticker = Ticker.getInstance();
+                ticker.addObserver(this);
+    
+                this.startButton.addEventListener('click', () => this.start());
+                this.stopButton.addEventListener('click', () => this.stop());
+                this.resetButton.addEventListener('click', () => this.reset());
+    
+                this.update(); // Initialize display
+            }
+    
+            start() {
+                if (!this.running) {
+                    this.startTime = Date.now() - this.elapsedTime;
+                    this.running = true;
+                    this.startButton.disabled = true;
+                    this.stopButton.disabled = false;
+                }
+            }
+    
+            stop() {
+                if (this.running) {
+                    this.elapsedTime = Date.now() - this.startTime;
+                    this.running = false;
+                    this.startButton.disabled = false;
+                    this.stopButton.disabled = true;
+                }
+            }
+    
+            reset() {
+                this.elapsedTime = 0;
+                this.running = false;
+                this.startButton.disabled = false;
+                this.stopButton.disabled = true;
+                this.display.textContent = "00:00:00.000"; // Reset display immediately
+            }
+    
+            update() {
+                if (this.running) {
+                    this.elapsedTime = Date.now() - this.startTime;
+                }
+    
+                let totalMilliseconds = this.elapsedTime;
+                let milliseconds = (totalMilliseconds % 1000).toString().padStart(3, '0');
+                let seconds = Math.floor((totalMilliseconds / 1000) % 60).toString().padStart(2, '0');
+                let minutes = Math.floor((totalMilliseconds / (1000 * 60)) % 60).toString().padStart(2, '0');
+                let hours = Math.floor((totalMilliseconds / (1000 * 60 * 60))).toString().padStart(2, '0');
+    
+                this.display.textContent = `${hours}:${minutes}:${seconds}.${milliseconds}`;
+            }
+        }
+        
+        class Countdown {
+            constructor() {
+                this.input = document.getElementById('countdown-input');
+                this.display = document.getElementById('countdown');
+                this.message = document.getElementById('countdown-message');
+                this.targetTime = null;
+
+                const ticker = Ticker.getInstance();
+                ticker.addObserver(this);
+
+                this.input.addEventListener('change', () => this.setTargetTime());
+            }
+
+            setTargetTime() {
+                this.targetTime = new Date(this.input.value).getTime();
+                this.message.classList.add('hidden'); // Hide the message when a new time is set
+                this.update();
+            }
+
+            update() {
+                if (!this.targetTime) return;
+
+                const now = Date.now();
+                let difference = this.targetTime - now;
+                let past = false;
+
+                if (difference < 0) {
+                    difference = -difference;
+                    past = true;
+                }
+
+                let seconds = Math.floor((difference / 1000) % 60);
+                let minutes = Math.floor((difference / (1000 * 60)) % 60);
+                let hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+                let days = Math.floor((difference / (1000 * 60 * 60 * 24)) % 30);
+                let months = Math.floor((difference / (1000 * 60 * 60 * 24 * 30)) % 12);
+                let years = Math.floor(difference / (1000 * 60 * 60 * 24 * 365));
+
+                let displayText = `${years} years ${months} months ${days} days ${hours} hours ${minutes} minutes ${seconds} seconds`;
+                displayText += past ? " ago" : " remaining";
+
+                this.display.textContent = displayText;
+
+                if (!past && difference <= 1000) { 
+                    this.message.classList.remove('hidden'); 
+                }
+            }
+        }
+        
+        function main() {
+            console.log("Page fully loaded");
+            const ticker = Ticker.getInstance();
+            ticker.start(); // Starts ticking every second
+    
+            // Initialize components
+            new Clock();
+            new Timer();
+            new Stopwatch();
+            new Countdown();
+        }
+    
+        window.addEventListener('load', main);
+    </script>
+    
+</head>
+<body>
+    <h1>JS Clock/Timer/Stopwatch/Countdown</h1>
+
+    <section id="clock-section">
+        <h2>Clock</h2>
+        <p id="clock">--:--:--</p>
+    </section>    
+
+    <section id="timer-section">
+        <h2>Timer</h2>
+        <input type="number" id="timer-minutes" placeholder="Minutes">
+        <input type="number" id="timer-seconds" placeholder="Seconds">
+        <label>
+            <input type="checkbox" id="timer-toggle"> Start Timer
+        </label>               
+        <div id="timer">--:--:--</div>
+    </section>
+
+    <section id="stopwatch-section">
+        <h2>Stopwatch</h2>
+        <button id="stopwatch-start">Start</button>
+        <button id="stopwatch-stop" disabled>Stop</button>
+        <button id="stopwatch-reset">Reset</button>
+        <div id="stopwatch">00:00:00.000</div>
+    </section>
+
+    <section id="countdown-section">
+        <h2>Countdown</h2>
+        <label for="countdown-input">Select Date & Time:</label>
+        <input type="datetime-local" id="countdown-input">               
+        <div id="countdown">--:--:--</div>
+        <div id="countdown-message" class="hidden">Countdown Finished!</div>
+    </section>
+</body>
+</html>
