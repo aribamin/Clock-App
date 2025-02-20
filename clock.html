@@ -193,28 +193,27 @@
             }
         }
 
-
         class Stopwatch {
             constructor() {
                 this.display = document.getElementById('stopwatch');
                 this.startButton = document.getElementById('stopwatch-start');
                 this.stopButton = document.getElementById('stopwatch-stop');
                 this.resetButton = document.getElementById('stopwatch-reset');
-    
+
                 this.startTime = 0;
                 this.elapsedTime = 0;
                 this.running = false;
-    
+
                 const ticker = Ticker.getInstance();
                 ticker.addObserver(this);
-    
+
                 this.startButton.addEventListener('click', () => this.start());
                 this.stopButton.addEventListener('click', () => this.stop());
                 this.resetButton.addEventListener('click', () => this.reset());
-    
+
                 this.update(); // Initialize display
             }
-    
+
             start() {
                 if (!this.running) {
                     this.startTime = Date.now() - this.elapsedTime;
@@ -223,7 +222,7 @@
                     this.stopButton.disabled = false;
                 }
             }
-    
+
             stop() {
                 if (this.running) {
                     this.elapsedTime = Date.now() - this.startTime;
@@ -232,7 +231,7 @@
                     this.stopButton.disabled = true;
                 }
             }
-    
+
             reset() {
                 this.elapsedTime = 0;
                 this.running = false;
@@ -240,18 +239,18 @@
                 this.stopButton.disabled = true;
                 this.display.textContent = "00:00:00.000"; // Reset display immediately
             }
-    
+
             update() {
                 if (this.running) {
                     this.elapsedTime = Date.now() - this.startTime;
                 }
-    
+
                 let totalMilliseconds = this.elapsedTime;
-                let milliseconds = (totalMilliseconds % 1000).toString().padStart(3, '0');
-                let seconds = Math.floor((totalMilliseconds / 1000) % 60).toString().padStart(2, '0');
-                let minutes = Math.floor((totalMilliseconds / (1000 * 60)) % 60).toString().padStart(2, '0');
-                let hours = Math.floor((totalMilliseconds / (1000 * 60 * 60))).toString().padStart(2, '0');
-    
+                let milliseconds = (totalMilliseconds % 1000).toString().padStart(3, '0'); // Ensure 3 digits
+                let seconds = Math.floor((totalMilliseconds / 1000) % 60).toString().padStart(2, '0'); // Ensure 2 digits
+                let minutes = Math.floor((totalMilliseconds / (1000 * 60)) % 60).toString().padStart(2, '0'); // Ensure 2 digits
+                let hours = Math.floor(totalMilliseconds / (1000 * 60 * 60)).toString().padStart(2, '0'); // Ensure 2 digits
+
                 this.display.textContent = `${hours}:${minutes}:${seconds}.${milliseconds}`;
             }
         }
