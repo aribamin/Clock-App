@@ -6,7 +6,7 @@
     <title>JS Clock/Timer/Stopwatch/Countdown</title>
     
     <style>
-        /* General Styles */
+        /*general styling for webpage*/
         body {
             font-family: Arial, sans-serif;
             text-align: center;
@@ -75,7 +75,8 @@
     
     <script>
         'use strict';
-    
+        
+        /*singleton class that manages ticking behavior for all elements and notifies registered observers every second*/
         class Ticker {
             constructor() {
                 if (Ticker.instance) {
@@ -85,6 +86,7 @@
                 this.running = false;
             }
     
+            /*returns singleton instance of ticker class*/
             static getInstance() {
                 if (!Ticker.instance) {
                     Ticker.instance = new Ticker();
@@ -92,6 +94,7 @@
                 return Ticker.instance;
             }
     
+            /*registers an observer that has update method*/
             addObserver(observer) {
                 if (typeof observer.update === 'function') {
                     this.observers.push(observer);
@@ -101,12 +104,14 @@
                 }
             }
 
+            /*notifies all registered observers by calling their update method*/
             notify() {
                 this.observers.forEach(observer => observer.update());
             }
     
+            /*starts ticking and notifies observers every second*/
             start() {
-                if (this.running) return; // Prevent multiple timeouts
+                if (this.running) return; /*prevent multiple timeouts*/
                 this.running = true;
     
                 const tick = () => {
@@ -119,6 +124,7 @@
             }
         }
     
+        /*displays current system time and updates every second*/
         class Clock {
             constructor() {
                 this.clockElement = document.getElementById('clock');
@@ -127,6 +133,7 @@
                 this.update(); // Set initial time immediately
             }
     
+            /*updates clock display with the current time in HH:MM:SS format*/
             update() {
                 const now = new Date();
                 const hours = now.getHours().toString().padStart(2, '0');
@@ -137,6 +144,7 @@
             }
         }
         
+        /*implements countdown timer that starts and pauses using checkbox*/
         class Timer {
             constructor() {
                 this.minutesInput = document.getElementById('timer-minutes');
@@ -152,10 +160,11 @@
                 this.toggleCheckbox.addEventListener('change', () => this.toggleTimer());
             }
 
+            /*toggles timer between start and pause states and if timer is starting for  first time, it reads user input*/
             toggleTimer() {
                 if (this.toggleCheckbox.checked) {
                     if (!this.isRunning) {
-                        // If it's the first time starting, fetch the input values
+                        /*if it's first time starting, fetch input values*/
                         if (this.timeLeft === 0) {
                             const minutes = parseInt(this.minutesInput.value) || 0;
                             const seconds = parseInt(this.secondsInput.value) || 0;
@@ -177,6 +186,7 @@
                 this.update();
             }
 
+            /*updates timer display and decrements the time left and stops when time reaches zero*/
             update() {
                 if (this.isRunning && this.timeLeft > 0) {
                     this.timeLeft--;
@@ -193,6 +203,7 @@
             }
         }
 
+        /*implements a stopwatch with start, stop, and reset functionalities*/
         class Stopwatch {
             constructor() {
                 this.display = document.getElementById('stopwatch');
@@ -211,9 +222,10 @@
                 this.stopButton.addEventListener('click', () => this.stop());
                 this.resetButton.addEventListener('click', () => this.reset());
 
-                this.update(); // Initialize display
+                this.update(); /*initialize display*/
             }
 
+            /*starts stopwatch from last elapsed time*/
             start() {
                 if (!this.running) {
                     this.startTime = Date.now() - this.elapsedTime;
@@ -223,6 +235,7 @@
                 }
             }
 
+            /*stops stopwatch and keeps elapsed time*/
             stop() {
                 if (this.running) {
                     this.elapsedTime = Date.now() - this.startTime;
@@ -232,6 +245,7 @@
                 }
             }
 
+            /*resets stopwatch to 00:00:00.000*/
             reset() {
                 this.elapsedTime = 0;
                 this.running = false;
@@ -240,6 +254,7 @@
                 this.display.textContent = "00:00:00.000"; // Reset display immediately
             }
 
+            /*updates stopwatch display with formatted elapsed time*/
             update() {
                 if (this.running) {
                     this.elapsedTime = Date.now() - this.startTime;
@@ -255,6 +270,7 @@
             }
         }
         
+        /*implements a countdown timer that counts down to selected date and time*/
         class Countdown {
             constructor() {
                 this.input = document.getElementById('countdown-input');
@@ -268,12 +284,14 @@
                 this.input.addEventListener('change', () => this.setTargetTime());
             }
 
+            /*sets target countdown time based on user input*/
             setTargetTime() {
                 this.targetTime = new Date(this.input.value).getTime();
-                this.message.classList.add('hidden'); // Hide the message when a new time is set
+                this.message.classList.add('hidden'); /*hide message when a new time is set*/
                 this.update();
             }
 
+            /*update countdown timer display*/
             update() {
                 if (!this.targetTime) return;
 
@@ -307,7 +325,7 @@
         function main() {
             console.log("Page fully loaded");
             const ticker = Ticker.getInstance();
-            ticker.start(); // Starts ticking every second
+            ticker.start(); /*starts ticking every second*/
     
             // Initialize components
             new Clock();
@@ -315,7 +333,8 @@
             new Stopwatch();
             new Countdown();
         }
-    
+        
+        /*initialize all components when page loads*/
         window.addEventListener('load', main);
     </script>
     
