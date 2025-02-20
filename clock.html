@@ -151,6 +151,7 @@
                 this.secondsInput = document.getElementById('timer-seconds');
                 this.toggleCheckbox = document.getElementById('timer-toggle');
                 this.timerDisplay = document.getElementById('timer');
+                this.resetButton = document.getElementById('timer-reset');
                 this.timeLeft = 0;
                 this.isRunning = false;
 
@@ -158,13 +159,14 @@
                 ticker.addObserver(this);
 
                 this.toggleCheckbox.addEventListener('change', () => this.toggleTimer());
+                this.resetButton.addEventListener('click', () => this.resetTimer());
             }
 
-            /*toggles timer between start and pause states and if timer is starting for  first time, it reads user input*/
+            /*toggles timer between start and pause*/
             toggleTimer() {
                 if (this.toggleCheckbox.checked) {
                     if (!this.isRunning) {
-                        /*if it's first time starting, fetch input values*/
+                        /*fetch user input when starting*/
                         if (this.timeLeft === 0) {
                             const minutes = parseInt(this.minutesInput.value) || 0;
                             const seconds = parseInt(this.secondsInput.value) || 0;
@@ -182,11 +184,12 @@
                     }
                 } else {
                     this.isRunning = false;
+                    this.timerDisplay.textContent = "Timer Stopped";  /*display "Timer Stopped"*/
                 }
                 this.update();
             }
 
-            /*updates timer display and decrements the time left and stops when time reaches zero*/
+            /*updates timer display, decrements time, and stops at zero*/
             update() {
                 if (this.isRunning && this.timeLeft > 0) {
                     this.timeLeft--;
@@ -200,6 +203,18 @@
                     this.minutesInput.disabled = false;
                     this.secondsInput.disabled = false;
                 }
+            }
+
+            /*resets timer to initial state*/
+            resetTimer() {
+                this.isRunning = false;
+                this.timeLeft = 0;
+                this.toggleCheckbox.checked = false;
+                this.minutesInput.disabled = false;
+                this.secondsInput.disabled = false;
+                this.minutesInput.value = '';
+                this.secondsInput.value = '';
+                this.timerDisplay.textContent = "--:--";
             }
         }
 
