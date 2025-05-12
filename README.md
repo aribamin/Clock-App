@@ -1,2 +1,2 @@
-# cmput404
-CMPUT 404 Projects
+# Clock App
+Clock app made using HTML, CSS, and JavaScript
