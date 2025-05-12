@@ -1,1 +1,2 @@
-# Clock App made using HTML, CSS, and JavaScript
+# Clock App 
+Nade using HTML, CSS, and JavaScript
